@@ -1,0 +1,2 @@
+1. crear la aplicación cdk: cdk init app --language=typescript
+2.
