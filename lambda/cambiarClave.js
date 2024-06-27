@@ -1,3 +1,5 @@
+const { sendEmail } = require('./email');
+
 exports.handler = async (event) => {
     const transaccion = JSON.parse(event.body);
 
@@ -8,22 +10,20 @@ exports.handler = async (event) => {
         timestamp: new Date().toISOString()
     };
 
-    const clave = transaccion.clave;
+    const emailResponse = await sendEmail(
+        'Notificación de Cambio de Clave',
+        'Se ha cambiado la clave correctamente.'
+    );
 
-    if (transactionDB.clave != clave) {
-
-        const nuevaclave = clave;
-
+    if (emailResponse.success) {
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: "Cambio exitoso", nuevaclave })
-        }
-
-    }else{
+            body: JSON.stringify({ message: "Cambio de clave realizado y notificación enviada" })
+        };
+    } else {
         return {
-            statusCode: 400,
-            body: JSON.stringify({ message: "No puede repetirse la clave" })
-        }
+            statusCode: 500,
+            body: JSON.stringify({ message: "Error al enviar la notificación" })
+        };
     }
-
-}
+};
