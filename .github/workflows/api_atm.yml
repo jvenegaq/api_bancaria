@@ -5,28 +5,7 @@ on:
   pull_request:
     branches: [ "main" ]
 jobs:
- build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build project
-      run: npm run build
-
-    - name: Run tests
-      run: npm test
-      
-  deploy:
+   deploy:
     runs-on: ubuntu-latest
     needs: build
 
