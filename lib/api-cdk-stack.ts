@@ -8,25 +8,25 @@ export class ApiCdkStack extends cdk.Stack {
         super(scope, id, props);
 
         const cambiarClaveLambda = new lambda.Function(this, 'CambiarClaveLambda', {
-            runtime: lambda.Runtime.NODEJS_20_X,
+            runtime: lambda.Runtime.NODEJS_18_X,
             code: lambda.Code.fromAsset('lambda'),
             handler: 'cambiarClave.handler',
         });
 
         const depositoLambda = new lambda.Function(this, 'DepositoLambda', {
-            runtime: lambda.Runtime.NODEJS_20_X,
+            runtime: lambda.Runtime.NODEJS_18_X,
             code: lambda.Code.fromAsset('lambda'),
             handler: 'deposito.handler',
         });
 
         const retiroLambda = new lambda.Function(this, 'RetiroLambda', {
-            runtime: lambda.Runtime.NODEJS_20_X,
+            runtime: lambda.Runtime.NODEJS_18_X,
             code: lambda.Code.fromAsset('lambda'),
             handler: 'retiro.handler',
         });
 
         const emailLambda = new lambda.Function(this, 'EmailLambda', {
-            runtime: lambda.Runtime.NODEJS_20_X,
+            runtime: lambda.Runtime.NODEJS_18_X,
             code: lambda.Code.fromAsset('lambda'),
             handler: 'email.sendEmail',
         });
