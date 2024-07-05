@@ -1,36 +1,37 @@
 const { sendEmail } = require('./email');
-const mysql = require('mysql');
+const { connectToDatabase } = require('./db');
 
 exports.handler = async (event) => {
-    const connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'mydb'
-    });
+    const connection = await connectToDatabase();
 
-    const transaccion = JSON.parse(event.body.numeroCuenta);
-    const objCuenta = connection.query(
+    const transaccion = JSON.parse(event.body);
+    const [rows] = await connection.execute(
         'SELECT * FROM cuenta WHERE numeroCuenta = ?',
-        [transaccion.cuenta]
+        [transaccion.numeroCuenta]
     );
 
-    // Aquí va la lógica de depósito
+    if (rows.length > 0) {
+        const objCuenta = rows[0];
+        const nuevoSaldo = objCuenta.saldo + transaccion.monto;
 
-    const emailResponse = await sendEmail(
-        'Notificación de Depósito',
-        'Se ha realizado un depósito correctamente.'
-    );
+        await connection.execute(
+            'UPDATE cuenta SET saldo = ? WHERE numeroCuenta = ?',
+            [nuevoSaldo, transaccion.numeroCuenta]
+        );
 
-    if (emailResponse.success) {
+        const emailResponse = await sendEmail(
+            'Notificación de Depósito',
+            'Se ha realizado un depósito correctamente.'
+        );
+
         return {
-            statusCode: 200,
-            body: JSON.stringify({ message: "Depósito realizado y notificación enviada" })
+            statusCode: emailResponse.success ? 200 : 500,
+            body: JSON.stringify({ message: emailResponse.success ? "Depósito realizado y notificación enviada" : "Error al enviar la notificación" })
         };
     } else {
         return {
-            statusCode: 500,
-            body: JSON.stringify({ message: "Error al enviar la notificación" })
+            statusCode: 404,
+            body: JSON.stringify({ message: "Cuenta no encontrada" })
         };
     }
 };

@@ -1,3 +1,4 @@
+// data.js
 exports.handler = async (event) => {
     // Simulando una respuesta de transacción con al menos 4 campos
     const transactionResponse = {
@@ -7,5 +8,8 @@ exports.handler = async (event) => {
         timestamp: new Date().toISOString()
     };
     
-    return transactionResponse;
+    return {
+        statusCode: 200,
+        body: JSON.stringify(transactionResponse)
+    };
 };
