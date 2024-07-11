@@ -34,7 +34,7 @@ export class ApiCdkStack extends cdk.Stack {
             handler: 'email.sendEmail',
         });
 
-        // Definir los recursos de API Gateway
+    
         const api = new apigateway.RestApi(this, 'API', {
             restApiName: 'My Service',
             description: 'This service serves my functions.',
@@ -52,7 +52,6 @@ export class ApiCdkStack extends cdk.Stack {
         const emailIntegration = new apigateway.LambdaIntegration(emailLambda);
         api.root.addResource('email').addMethod('POST', emailIntegration);
 
-        // Definir las identidades de email verificadas
         const emailIdentity1 = new ses.CfnEmailIdentity(this, 'VerifiedEmailIdentity1', {
             emailIdentity: 'jvenegaq@gmail.com'
         });
