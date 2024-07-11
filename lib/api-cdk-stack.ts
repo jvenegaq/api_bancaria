@@ -1,8 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import * as ses from 'aws-cdk-lib/aws-ses';
-import * as sesActions from 'aws-cdk-lib/aws-ses-actions';
 import { Construct } from 'constructs';
 
 export class ApiCdkStack extends cdk.Stack {
@@ -31,33 +29,26 @@ export class ApiCdkStack extends cdk.Stack {
         const emailLambda = new lambda.Function(this, 'EmailLambda', {
             runtime: lambda.Runtime.NODEJS_20_X,
             code: lambda.Code.fromAsset('lambda'),
-            handler: 'email.sendEmail',
+            handler: 'email.handler',  // Asegúrate de que el handler sea correcto
         });
 
-    
+        // Definir los recursos de API Gateway
         const api = new apigateway.RestApi(this, 'API', {
             restApiName: 'My Service',
             description: 'This service serves my functions.',
         });
 
+        // Configurar integraciones de Lambda y métodos GET para cada recurso
         const cambiarClaveIntegration = new apigateway.LambdaIntegration(cambiarClaveLambda);
-        api.root.addResource('cambiarClave').addMethod('POST', cambiarClaveIntegration);
+        api.root.addResource('cambiarClave').addMethod('GET', cambiarClaveIntegration);
 
         const depositoIntegration = new apigateway.LambdaIntegration(depositoLambda);
-        api.root.addResource('deposito').addMethod('POST', depositoIntegration);
+        api.root.addResource('deposito').addMethod('GET', depositoIntegration);
 
         const retiroIntegration = new apigateway.LambdaIntegration(retiroLambda);
-        api.root.addResource('retiro').addMethod('POST', retiroIntegration);
+        api.root.addResource('retiro').addMethod('GET', retiroIntegration);
 
         const emailIntegration = new apigateway.LambdaIntegration(emailLambda);
-        api.root.addResource('email').addMethod('POST', emailIntegration);
-
-        const emailIdentity1 = new ses.CfnEmailIdentity(this, 'VerifiedEmailIdentity1', {
-            emailIdentity: 'jvenegaq@gmail.com'
-        });
-
-        const emailIdentity2 = new ses.CfnEmailIdentity(this, 'VerifiedEmailIdentity2', {
-            emailIdentity: 'jevenegas1@utpl.edu.ec'
-        });
+        api.root.addResource('email').addMethod('GET', emailIntegration);
     }
 }

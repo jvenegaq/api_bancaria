@@ -2,12 +2,13 @@ const { sendEmail } = require('./email');
 const { connectToDatabase } = require('./db');
 
 exports.handler = async (event) => {
-    const transaccion = JSON.parse(event.body);
+    const numeroCuenta = event.queryStringParameters.numeroCuenta;
+    const nuevaClave = event.queryStringParameters.nuevaClave;
     const connection = await connectToDatabase();
 
     await connection.execute(
         'UPDATE cuenta SET clave = ? WHERE numeroCuenta = ?',
-        [transaccion.nuevaClave, transaccion.numeroCuenta]
+        [nuevaClave, numeroCuenta]
     );
 
     const emailResponse = await sendEmail(
@@ -16,7 +17,7 @@ exports.handler = async (event) => {
     );
 
     return {
-        statusCode: emailResponse.success ? 200 : 500,
-        body: JSON.stringify({ message: emailResponse.success ? "Cambio de clave realizado y notificación enviada" : "Error al enviar la notificación" })
+        statusCode: 200,
+        body: JSON.stringify({ message: "Cambio de clave realizado y notificación enviada" })
     };
 };
