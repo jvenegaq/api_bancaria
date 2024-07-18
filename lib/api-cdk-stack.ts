@@ -7,7 +7,7 @@ export class ApiCdkStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        // Definir las funciones Lambda
+        // Funciones Lambda
         const cambiarClaveLambda = new lambda.Function(this, 'CambiarClaveLambda', {
             runtime: lambda.Runtime.NODEJS_20_X,
             code: lambda.Code.fromAsset('lambda'),
@@ -29,16 +29,14 @@ export class ApiCdkStack extends cdk.Stack {
         const emailLambda = new lambda.Function(this, 'EmailLambda', {
             runtime: lambda.Runtime.NODEJS_20_X,
             code: lambda.Code.fromAsset('lambda'),
-            handler: 'email.handler',  // Asegúrate de que el handler sea correcto
+            handler: 'email.handler',  
         });
 
-        // Definir los recursos de API Gateway
         const api = new apigateway.RestApi(this, 'API', {
-            restApiName: 'My Service',
-            description: 'This service serves my functions.',
+            restApiName: 'ATM_api',
+            description: 'Funciones de un cajero automático',
         });
 
-        // Configurar integraciones de Lambda y métodos GET para cada recurso
         const cambiarClaveIntegration = new apigateway.LambdaIntegration(cambiarClaveLambda);
         api.root.addResource('cambiarClave').addMethod('GET', cambiarClaveIntegration);
 
