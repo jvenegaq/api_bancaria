@@ -1,52 +1,67 @@
-import * as cdk from 'aws-cdk-lib';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { Construct } from 'constructs';
+import * as cdk from '@aws-cdk/core';
+import * as lambda from '@aws-cdk/aws-lambda';
+import * as apigateway from '@aws-cdk/aws-apigateway';
+import * as iam from '@aws-cdk/aws-iam';
+import * as ses from '@aws-cdk/aws-ses';
 
 export class ApiCdkStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        // Funciones Lambda
-        const cambiarClaveLambda = new lambda.Function(this, 'CambiarClaveLambda', {
-            runtime: lambda.Runtime.NODEJS_20_X,
-            code: lambda.Code.fromAsset('lambda'),
+        // Crear un rol para Lambda con permisos para SES
+        const lambdaRole = new iam.Role(this, 'LambdaRole', {
+            assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+        });
+
+        lambdaRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSESFullAccess'));
+
+        // Función Lambda para cambiar clave
+        const cambiarClaveLambda = new lambda.Function(this, 'CambiarClaveHandler', {
+            runtime: lambda.Runtime.NODEJS_14_X,
+            code: lambda.Code.fromAsset('src'),
             handler: 'cambiarClave.handler',
+            role: lambdaRole,
         });
 
-        const depositoLambda = new lambda.Function(this, 'DepositoLambda', {
-            runtime: lambda.Runtime.NODEJS_20_X,
-            code: lambda.Code.fromAsset('lambda'),
+        // Función Lambda para depósito
+        const depositoLambda = new lambda.Function(this, 'DepositoHandler', {
+            runtime: lambda.Runtime.NODEJS_14_X,
+            code: lambda.Code.fromAsset('src'),
             handler: 'deposito.handler',
+            role: lambdaRole,
         });
 
-        const retiroLambda = new lambda.Function(this, 'RetiroLambda', {
-            runtime: lambda.Runtime.NODEJS_20_X,
-            code: lambda.Code.fromAsset('lambda'),
+        // Función Lambda para retiro
+        const retiroLambda = new lambda.Function(this, 'RetiroHandler', {
+            runtime: lambda.Runtime.NODEJS_14_X,
+            code: lambda.Code.fromAsset('src'),
             handler: 'retiro.handler',
+            role: lambdaRole,
         });
 
-        const emailLambda = new lambda.Function(this, 'EmailLambda', {
-            runtime: lambda.Runtime.NODEJS_20_X,
-            code: lambda.Code.fromAsset('lambda'),
-            handler: 'email.handler',  
+        // API Gateway
+        const api = new apigateway.RestApi(this, 'api', {
+            restApiName: 'Mi Servicio',
+            description: 'Este servicio maneja depósitos, retiros y cambios de clave.'
         });
 
-        const api = new apigateway.RestApi(this, 'API', {
-            restApiName: 'ATM_api',
-            description: 'Funciones de un cajero automático',
+        // Recursos y métodos de API Gateway
+        const cambiarClaveResource = api.root.addResource('cambiarClave');
+        cambiarClaveResource.addMethod('GET', new apigateway.LambdaIntegration(cambiarClaveLambda));
+
+        const depositoResource = api.root.addResource('deposito');
+        depositoResource.addMethod('GET', new apigateway.LambdaIntegration(depositoLambda));
+
+        const retiroResource = api.root.addResource('retiro');
+        retiroResource.addMethod('GET', new apigateway.LambdaIntegration(retiroLambda));
+
+        // Crear el dominio SES y los emails verificados
+        const domainIdentity = new ses.CfnEmailIdentity(this, 'DomainIdentity', {
+            emailIdentity: 'jvenegaq@gmail.com'
         });
 
-        const cambiarClaveIntegration = new apigateway.LambdaIntegration(cambiarClaveLambda);
-        api.root.addResource('cambiarClave').addMethod('GET', cambiarClaveIntegration);
-
-        const depositoIntegration = new apigateway.LambdaIntegration(depositoLambda);
-        api.root.addResource('deposito').addMethod('GET', depositoIntegration);
-
-        const retiroIntegration = new apigateway.LambdaIntegration(retiroLambda);
-        api.root.addResource('retiro').addMethod('GET', retiroIntegration);
-
-        const emailIntegration = new apigateway.LambdaIntegration(emailLambda);
-        api.root.addResource('email').addMethod('GET', emailIntegration);
+        new ses.CfnEmailIdentity(this, 'RecipientIdentity', {
+            emailIdentity: 'jevenegas1@utpl.edu.ec'
+        });
     }
 }

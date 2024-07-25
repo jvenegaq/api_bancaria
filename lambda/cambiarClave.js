@@ -16,8 +16,15 @@ exports.handler = async (event) => {
         'Se ha cambiado la clave correctamente.'
     );
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ message: "Cambio de clave realizado y notificación enviada" })
-    };
+    if (emailResponse.success) {
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: "Cambio de clave realizado y notificación enviada" })
+        };
+    } else {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: "Error al enviar la notificación", error: emailResponse.error })
+        };
+    }
 };

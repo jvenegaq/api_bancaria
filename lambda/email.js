@@ -1,27 +1,23 @@
 const AWS = require('aws-sdk');
-const ses = new AWS.SES();
+const ses = new AWS.SES({ region: 'us-east-1' }); // Asegúrate de usar la región correcta
 
-exports.handler = async (event) => {
+const sendEmail = async (subject, message) => {
     const emailParams = {
         Destination: { ToAddresses: ['jevenegas1@utpl.edu.ec'] },
         Message: {
-            Body: { Text: { Data: 'Mensaje de prueba' } },
-            Subject: { Data: 'Asunto de prueba' }
+            Body: { Text: { Data: message } },
+            Subject: { Data: subject }
         },
         Source: 'jvenegaq@gmail.com'
     };
 
     try {
         await ses.sendEmail(emailParams).promise();
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: "Email enviado correctamente" })
-        };
+        return { success: true };
     } catch (error) {
         console.error('Error sending email:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: "Error al enviar el email", error })
-        };
+        return { success: false, error };
     }
 };
+
+module.exports = { sendEmail };

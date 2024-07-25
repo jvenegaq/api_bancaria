@@ -1,17 +1,60 @@
-const { connectToDatabase } = require('./db');
+const { sendEmail } = require('./email');
+const { clientes } = require('./data');
 
 exports.handler = async (event) => {
-    const numeroCuenta = event.queryStringParameters.numeroCuenta;
-    const monto = event.queryStringParameters.monto;
-    const connection = await connectToDatabase();
+    try {
+        const body = event.body ? JSON.parse(event.body) : null;
+        const numeroCuenta = body ? body.numeroCuenta : null;
+        const monto = body ? body.monto : null;
 
-    await connection.execute(
-        'UPDATE cuenta SET saldo = saldo - ? WHERE numeroCuenta = ? AND saldo >= ?',
-        [monto, numeroCuenta, monto]
-    );
+        if (!numeroCuenta || !monto) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: "numeroCuenta y monto son requeridos" })
+            };
+        }
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ message: "Retiro realizado correctamente" })
-    };
+        const cliente = clientes.find(c => c.numeroCuenta === numeroCuenta);
+
+        if (!cliente) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ message: "Cuenta no encontrada" })
+            };
+        }
+
+        if (cliente.saldo < monto) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: "Saldo insuficiente" })
+            };
+        }
+
+        // Realizar el retiro
+        cliente.saldo -= monto;
+
+        // Enviar la notificación por correo electrónico
+        const emailResponse = await sendEmail(
+            'Notificación de Retiro',
+            'Se ha realizado un retiro correctamente.'
+        );
+
+        if (emailResponse.success) {
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ message: "Retiro realizado y notificación enviada / realizado por Julio Venegas" })
+            };
+        } else {
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: "Error al enviar la notificación", error: emailResponse.error })
+            };
+        }
+    } catch (error) {
+        console.error('Error processing request:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: "Internal server error", error: error.message })
+        };
+    }
 };

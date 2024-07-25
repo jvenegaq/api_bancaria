@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2019",
     "module": "commonjs",
-    "lib": ["ES2020"],
-    "declaration": true,
+    "lib": ["ES2019"],
     "outDir": "./dist",
+    "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["bin/**/*.ts", "lib/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.ts", "bin/**/*.ts", "bin/api-cdk.js"],
+  "exclude": ["node_modules"]
 }
+

@@ -1,4 +1,3 @@
-// data.js
 exports.handler = async (event) => {
     const transactionResponse = {
         transactionId: "123456",
